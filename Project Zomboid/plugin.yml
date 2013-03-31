@@ -1,0 +1,14 @@
+name: Zomboid
+main: me.zeus.Zomboid.Core.Zomboid
+version: 0.1
+description: Zomboid CORE plugin
+commands:
+  kd:
+    description: Sends your Kill Death Ratio
+    syntax: /kd
+  kills:
+    description: Sends your Kills count
+    syntax: /kills
+  deaths:
+    description: Sends your Deaths count
+    syntax: /deaths
