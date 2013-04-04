@@ -42,7 +42,6 @@ public class JoinListener implements Listener {
         plugin.commandevent.notLoaded.add(joiner.getName());
         if (zplayer.isZPlayer(joiner.getName()))
         {
-            e.setJoinMessage(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Welcome back to hell, " + ChatColor.DARK_RED + joiner.getName());
             // delay message
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
             {
@@ -54,17 +53,13 @@ public class JoinListener implements Listener {
                     zjoiner.reloadStats();
                     zjoiner.loadStats();
                     plugin.availablez.put(joiner.getName(), zjoiner);
-
-                    joiner.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nWelcome back, " + joiner.getName() + ", to Project Zomboid!");
-                    joiner.sendMessage(ChatColor.BLUE + "" + ChatColor.BOLD + "Website + Information/Donate -- http://bit.ly/zomboid101");
-
                     joiner.sendMessage(ChatColor.GREEN + "[Zomboid] Stats are loaded!");
                     joiner.playSound(joiner.getLocation(), Sound.ORB_PICKUP, 1.0F, 1.0F);
+                    plugin.commandevent.notLoaded.remove(joiner.getName());
                 }
             }, 60L);
         } else
         {
-            e.setJoinMessage(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Welcome to hell, " + ChatColor.DARK_RED + joiner.getName());
             // delay message
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
             {
@@ -76,17 +71,14 @@ public class JoinListener implements Listener {
                     zjoiner.createStats();
                     plugin.zplayers.addName(joiner.getName());
                     plugin.availablez.put(joiner.getName(), zjoiner);
-                
-                    joiner.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nWelcome, " + joiner.getName() + ", to Project Zomboid!");
-                    joiner.sendMessage(ChatColor.BLUE + "" + ChatColor.BOLD + "Website + Information/Donate -- http://bit.ly/zomboid101");
-
                     joiner.sendMessage(ChatColor.GREEN + "\n[Zomboid] Stats are created!");
                     joiner.playSound(joiner.getLocation(), Sound.LEVEL_UP, 1.0F, 1.0F);
+                    plugin.commandevent.notLoaded.remove(joiner.getName());
+                    e.setJoinMessage(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Welcome to hell, " + ChatColor.DARK_RED + joiner.getName());
                 }
             }, 60L);
         }
 
-        plugin.commandevent.notLoaded.remove(joiner.getName());
     }
     // =================================================================
 

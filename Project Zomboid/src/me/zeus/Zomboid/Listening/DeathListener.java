@@ -5,6 +5,7 @@ package me.zeus.Zomboid.Listening;
 import me.zeus.Zomboid.Core.ZPlayer;
 import me.zeus.Zomboid.Core.Zomboid;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -56,6 +57,9 @@ public class DeathListener implements Listener {
                     zVictim = plugin.availablez.get(killed.getName());
                     zKiller.setPKills(zKiller.getPKills() + 1); // set killer kills + 1
                     zVictim.setDeaths(zVictim.getDeaths() + 1); // set victim deaths + 1
+                    killer.getServer().broadcastMessage(
+                            ChatColor.DARK_RED + "Warning: " + ChatColor.GOLD + killed.getName() + ChatColor.RED + " was slain by "
+                                    + ChatColor.GOLD + killer.getName());
                 }
 
                 else if (eKilled instanceof Zombie)
