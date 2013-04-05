@@ -4,7 +4,7 @@ package me.zeus.Zomboid.Listening;
 
 import java.util.Arrays;
 
-import me.zeus.Zomboid.Core.ZPlayer;
+import me.zeus.Zomboid.API.ZPlayer;
 import me.zeus.Zomboid.Core.Zomboid;
 
 import org.bukkit.ChatColor;
@@ -49,6 +49,7 @@ public class JoinListener implements Listener {
                 @Override
                 public void run()
                 {
+                    e.setJoinMessage("");
                     zjoiner = new ZPlayer(plugin, joiner.getName(), 0, 0, 0, Arrays.asList(""));
                     zjoiner.reloadStats();
                     zjoiner.loadStats();

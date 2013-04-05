@@ -2,7 +2,7 @@
 package me.zeus.Zomboid.Listening;
 
 
-import me.zeus.Zomboid.Core.ZPlayer;
+import me.zeus.Zomboid.API.ZPlayer;
 import me.zeus.Zomboid.Core.Zomboid;
 
 import org.bukkit.ChatColor;

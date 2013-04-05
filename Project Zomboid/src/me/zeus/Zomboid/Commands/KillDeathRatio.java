@@ -2,7 +2,7 @@
 package me.zeus.Zomboid.Commands;
 
 
-import me.zeus.Zomboid.Core.ZPlayer;
+import me.zeus.Zomboid.API.ZPlayer;
 import me.zeus.Zomboid.Core.Zomboid;
 import me.zeus.Zomboid.Util.Calculator;
 import me.zeus.Zomboid.Util.Cooldown;

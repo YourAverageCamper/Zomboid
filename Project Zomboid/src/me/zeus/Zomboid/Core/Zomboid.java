@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.zeus.Zomboid.API.ZPlayer;
 import me.zeus.Zomboid.Commands.DeathsCommand;
 import me.zeus.Zomboid.Commands.KillDeathRatio;
 import me.zeus.Zomboid.Commands.KillsCommand;
