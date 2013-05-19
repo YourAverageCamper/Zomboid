@@ -3,19 +3,19 @@ package me.zeus.Zomboid.Core;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.zeus.Zomboid.API.ZPlayer;
-import me.zeus.Zomboid.Commands.DeathsCommand;
-import me.zeus.Zomboid.Commands.KillDeathRatio;
-import me.zeus.Zomboid.Commands.KillsCommand;
 import me.zeus.Zomboid.Listening.CommandEvent;
-import me.zeus.Zomboid.Listening.DeathListener;
 import me.zeus.Zomboid.Listening.JoinListener;
 import me.zeus.Zomboid.Listening.LeaveListener;
 
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,29 +25,28 @@ public class Zomboid extends JavaPlugin {
 
     // =================================================================
 
-    // listeners
-    public DeathListener deathListener;
-    public JoinListener joinListener;
-    public LeaveListener leaveListener;
-    public CommandEvent commandevent;
+    private File playersDir;
+    private File[] playerFiles;
 
-    // command executors
-    public KillDeathRatio killdeathratio;
-    public KillsCommand killscommand;
-    public DeathsCommand deathscommand;
+    private Map<String, ZPlayer> availablez;
 
-    // other
-    public Map<String, ZPlayer> availablez;
-
-    // =================================================================
-
-    // basic variables
-    private File statsDirectory;
-    public ZPlayerFile zplayers;
-
-    // constructor
-    public Zomboid()
+    public Map<String, ZPlayer> getPlayers()
     {
+        return availablez;
+    }
+
+    private List<String> notLoadedPlayers;
+
+    public List<String> getUnloadedPlayers()
+    {
+        return notLoadedPlayers;
+    }
+
+    private static Zomboid instance;
+
+    public static Zomboid getInstance()
+    {
+        return instance;
     }
 
     // =================================================================
@@ -56,56 +55,77 @@ public class Zomboid extends JavaPlugin {
     @Override
     public void onEnable()
     {
-        // listeners
-        deathListener = new DeathListener(this);
-        joinListener = new JoinListener(this);
-        leaveListener = new LeaveListener(this);
-        commandevent = new CommandEvent(this);
-
-        // executors
-        killdeathratio = new KillDeathRatio(this);
-        killscommand = new KillsCommand(this);
-        deathscommand = new DeathsCommand(this);
-
-        // check for /stats/ directory
-        createStatsDir();
-
-        // available players
+        instance = this;
+        
         availablez = new HashMap<String, ZPlayer>();
+        notLoadedPlayers = new ArrayList<String>();
+        
+        checkDirs();
+        loadData();
 
-        // create ZPlayers.yml 
-        zplayers = new ZPlayerFile(this, "zplayers.yml", true);
-
-        // register events
-        final PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(joinListener, this);
-        pm.registerEvents(deathListener, this);
-        pm.registerEvents(leaveListener, this);
-        pm.registerEvents(commandevent, this);
-
-        // get commands
-        getCommand("kd").setExecutor(killdeathratio);
-        getCommand("kills").setExecutor(killscommand);
-        getCommand("deaths").setExecutor(deathscommand);
-
-        // kick all players
-        for (Player p : getServer().getOnlinePlayers())
-        {
-            p.kickPlayer("Server reload, join back!");
-        }
+        registerEvents();
+        registerCommands();
     }
 
-    // create stats directory 
-    private void createStatsDir()
+    @Override
+    public void onDisable()
     {
-        statsDirectory = new File(getDataFolder() + "/stats/");
-        if (!statsDirectory.exists())
+        instance = null;
+    }
+
+    private void checkDirs()
+    {
+        playersDir = new File(getDataFolder() + File.separator + "players" + File.separator);
+        if (!playersDir.exists())
         {
-            statsDirectory.mkdirs();
-            System.out.println("[Zomboid] **Stats directory created** at " + statsDirectory.getPath());
+            playersDir.mkdirs();
         }
     }
 
+    private void registerCommands()
+    {
+        /*
+        getCommand("kills").setExecutor(new CMD_Kills);
+        getCommand("deaths").setExecutor(new CMD_Deaths);
+        getCommand("kd").setExecutor(new CMD_KD);
+        */
+    }
+
+    private void registerEvents()
+    {
+        PluginManager pm = getServer().getPluginManager();
+        pm.registerEvents(new JoinListener(this), this);
+        pm.registerEvents(new CommandEvent(this), this);
+        pm.registerEvents(new LeaveListener(this), this);
+    }
+
+    private void loadData()
+    {
+        playerFiles = playersDir.listFiles();
+        for (int i = 0; i < playerFiles.length; i++)
+        {
+            if (!playerFiles[i].exists())
+            {
+                return;
+            }
+            try
+            {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(playerFiles[i]));
+                ZPlayer loaded = (ZPlayer) ois.readObject();
+                ois.close();
+                System.out.println("Loaded stats for " + loaded.getName());
+                availablez.put(loaded.getName(), loaded);
+            } catch (IOException ioe)
+            {
+                ioe.printStackTrace();
+                return;
+            } catch (ClassNotFoundException cnfe)
+            {
+                cnfe.printStackTrace();
+                return;
+            }
+        }
+    }
     // =================================================================
 
 }

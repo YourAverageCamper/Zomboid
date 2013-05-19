@@ -2,9 +2,6 @@
 package me.zeus.Zomboid.Listening;
 
 
-import java.util.HashSet;
-import java.util.Set;
-
 import me.zeus.Zomboid.Core.Zomboid;
 
 import org.bukkit.ChatColor;
@@ -25,12 +22,8 @@ public class CommandEvent implements Listener {
 
     public CommandEvent(Zomboid instance)
     {
-        this.plugin = instance;
+        plugin = instance;
     }
-
-    // =================================================================
-
-    public Set<String> notLoaded = new HashSet<String>();
 
     // =================================================================
 
@@ -41,7 +34,7 @@ public class CommandEvent implements Listener {
 
         if (e.getMessage().startsWith("/"))
         {
-            if (notLoaded.contains(player.getName()))
+            if (Zomboid.getInstance().getUnloadedPlayers().contains(player.getName()))
             {
                 e.setCancelled(true);
                 player.sendMessage(ChatColor.DARK_RED + "You can't do this until your information is loaded!");

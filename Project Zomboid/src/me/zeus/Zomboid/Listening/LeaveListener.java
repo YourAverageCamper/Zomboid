@@ -16,8 +16,8 @@ public class LeaveListener implements Listener {
 
     // =================================================================
 
+    @SuppressWarnings("unused")
     private Zomboid plugin;
-    private ZPlayer zquitter;
 
     public LeaveListener(Zomboid instance)
     {
@@ -30,14 +30,12 @@ public class LeaveListener implements Listener {
     public void onLeave(PlayerQuitEvent e)
     {
         Player p = e.getPlayer();
-
-        if (plugin.availablez.containsKey(p.getName()))
+        ZPlayer quitter = Zomboid.getInstance().getPlayers().get(p.getName());
+        if (quitter == null)
         {
-            zquitter = plugin.availablez.get(p.getName());
+            return;
         }
-        zquitter.saveStats();
-        plugin.availablez.remove(p.getName());
-
+        quitter.save();
         System.out.println("[Zomboid] Stats saved for " + p.getName());
     }
 

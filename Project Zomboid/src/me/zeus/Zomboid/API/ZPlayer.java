@@ -3,244 +3,157 @@ package me.zeus.Zomboid.API;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.zeus.Zomboid.Core.Zomboid;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 
-
-public class ZPlayer {
+public class ZPlayer implements Serializable {
 
     // =================================================================
 
-    private File statsFile;
-    private FileConfiguration statsFileCFG;
-
-    //
-    private String username;
-
-    private int pKills = 0;
-    private int zKills = 0;
-    private int deaths = 0;
-
-    private List<String> victims = new ArrayList<String>();
-    //
+    private static final long serialVersionUID = -4808022018699734130L;
+    private String name;
+    private int pKills;
+    private int zKills;
+    private int deaths;
+    private double money;
+    private List<ZPlayer> victims;
 
     // =================================================================
 
-    private Zomboid plugin;
-
-    public ZPlayer(Zomboid instance)
+    public ZPlayer()
     {
-        plugin = instance;
+        super();
     }
 
-    public ZPlayer(Zomboid instance, String username, int playerKills, int deaths, int zombieKills, List<String> victims)
+    public static ZPlayer getZPlayer(String name)
     {
-        plugin = instance;
-        this.username = username;
-        pKills = playerKills;
-        this.deaths = deaths;
-        zKills = zombieKills;
-        this.victims = victims;
+        return Zomboid.getInstance().getPlayers().get(name);
     }
 
     // =================================================================
-    /*
-     *                  THE MOST IMPORTANT STUFF IS HERE:
-     * 
-     *                HANDLING STATS , LOADING STATS, ETC...      
-     */
-    // =================================================================
 
-    public void reloadStats()
+    public static void createZPlayer(String name, int pkills, int zkills, int deaths, double money)
     {
-        if (statsFile == null)
+        File f = new File(Zomboid.getInstance().getDataFolder() + File.separator + "players" + File.separator + name + ".dat");
+        if (f.exists())
         {
-            statsFile = new File(plugin.getDataFolder() + "/stats/" + username + ".yml");
-        }
-        statsFileCFG = YamlConfiguration.loadConfiguration(statsFile);
-    }
-
-    public FileConfiguration getStats()
-    {
-        if (statsFile == null || statsFileCFG == null)
-        {
-            reloadStats();
-        }
-        return statsFileCFG;
-    }
-
-    public void createStats()
-    {
-        statsFile = new File(plugin.getDataFolder() + "/stats/" + username + ".yml");
-        if (!statsFile.exists())
-        {
-            try
-            {
-                statsFile.createNewFile();
-            } catch (IOException e)
-            {
-                System.out.println("There was an error creating a stats file for " + username);
-            }
-        } else
-        {
-            System.out.println("A stats file already exists for " + username);
+            System.out.println("Error: File already exists!");
             return;
         }
-        getStats().set("Username", username);
-        getStats().set("Zombie_Kills", 0);
-        getStats().set("Player_Kills", 0);
-        getStats().set("Deaths", 0);
-        getStats().set("Tag_Color", "GREEN");
-        getStats().set("Victims", victims);
-        saveStats();
-    }
-
-    public void loadStats()
-    {
-        reloadStats();
-        username = getStats().getString("Username");
-        zKills = getStats().getInt("Zombie_Kills");
-        pKills = getStats().getInt("Player_Kills");
-        deaths = getStats().getInt("Deaths");
-        victims = getStats().getStringList("Victims");
-    }
-
-    public void saveStats()
-    {
         try
         {
-            getStats().set("Username", username);
-            getStats().set("Zombie_Kills", zKills);
-            getStats().set("Player_Kills", pKills);
-            getStats().set("Deaths", deaths);
-            getStats().set("Victims", victims);
-            getStats().save(statsFile);
-        } catch (IOException e)
+            f.createNewFile();
+            ZPlayer zplayer = new ZPlayer();
+            zplayer.setName(name);
+            zplayer.setPlayerKills(pkills);
+            zplayer.setZombieKills(zkills);
+            zplayer.setDeaths(deaths);
+            zplayer.setMoney(money);
+            zplayer.setVictims(new ArrayList<ZPlayer>());
+            zplayer.save();
+            Zomboid.getInstance().getPlayers().put(name, zplayer);
+        } catch (IOException ioe)
         {
-            System.out.println("There was an error saving the stats file for " + username);
+            System.out.println("There was an error creating data for " + name + "!");
+            ioe.printStackTrace();
+            return;
+        }
+    }
+
+    public void save()
+    {
+        File f = new File(Zomboid.getInstance().getDataFolder() + File.separator + "players" + File.separator + name + ".dat");
+        if (!f.exists())
+        {
+            System.out.println("Can not save data for " + name + " because file does not exist!");
+            return;
+        }
+        try
+        {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
+            oos.writeObject(this);
+            oos.close();
+            System.out.println("Saved data for " + name);
+        } catch (IOException ioe)
+        {
+            System.out.println("There was an error SAVING data for " + name + "!");
+            ioe.printStackTrace();
+            return;
         }
     }
 
     // =================================================================
 
-    public boolean isZPlayer()
+    /* getters */
+    
+    public String getName()
     {
-        plugin.zplayers.reload();
-        return plugin.zplayers.getAsEditable().contains(username);
+        return name;
     }
 
-    public boolean isZPlayer(String name)
-    {
-        plugin.zplayers.reload();
-        return plugin.zplayers.getAsEditable().contains(name);
-    }
-
-    public boolean isAvailable()
-    {
-        return plugin.availablez.containsKey(username);
-    }
-
-    public boolean isAvailable(String name)
-    {
-        return plugin.availablez.containsKey(name);
-    }
-
-    // =================================================================
-    /*
-     *          THIS IS WHERE WE GET STUFF FOR THE OBJECT
-     *                  LIKE NAME, KILLS ETC..
-     *                  
-     *                   PLEASE KEEP ORGANIZED!
-     */
-    // =================================================================
-
-    // username
-    public String getUsername()
-    {
-        return username;
-    }
-
-    // kills player
-    public int getPKills()
+    public int getPlayerKills()
     {
         return pKills;
     }
 
-    // kills zombie
-    public int getZKills()
+    public int getZombieKills()
     {
         return zKills;
     }
 
-    // deaths
     public int getDeaths()
     {
         return deaths;
     }
 
-    // victims
-    public List<String> getVictims()
+    public double getMoney()
+    {
+        return money;
+    }
+
+    public List<ZPlayer> getVictims()
     {
         return victims;
     }
 
-    public ZPlayer getPlayer(String name)
+    /* Setters */
+
+    public void setName(String name)
     {
-        File temp = new File(plugin.getDataFolder() + "/stats/" + name + ".yml");
-        FileConfiguration tempCFG = YamlConfiguration.loadConfiguration(temp);
-        ZPlayer ztemp = new ZPlayer(plugin, name, 0, 0, 0, new ArrayList<String>());
-        if (!temp.exists())
-        {
-            return null;
-        } else
-        {
-            ztemp.setDeaths(tempCFG.getInt("Deaths"));
-            ztemp.setPKills(tempCFG.getInt("Player_Kills"));
-            ztemp.setZKills(tempCFG.getInt("Zombie_Kills"));
-            ztemp.setVictims(tempCFG.getStringList("Victims"));
-            ztemp.setUsername(tempCFG.getString("Username"));
-            return ztemp;
-        }
+        this.name = name;
     }
 
-    // =================================================================
-    /*
-     *          THIS IS WHERE WE **SET** STUFF FOR THE OBJECT
-     *                  
-     *                   PLEASE KEEP ORGANIZED!
-     */
-    // =================================================================
-
-    public void setUsername(String name)
+    public void setPlayerKills(int pKills)
     {
-        username = name;
+        this.pKills = pKills;
     }
 
-    public void setVictims(List<String> v)
+    public void setZombieKills(int zKills)
     {
-        victims = v;
+        this.zKills = zKills;
     }
 
-    public void setZKills(int amount)
+    public void setDeaths(int deaths)
     {
-        zKills = amount;
+        this.deaths = deaths;
     }
 
-    public void setPKills(int amount)
+    public void setMoney(double money)
     {
-        pKills = amount;
+        this.money = money;
     }
 
-    public void setDeaths(int amount)
+    public void setVictims(List<ZPlayer> victims)
     {
-        deaths = amount;
+        this.victims = victims;
     }
 
     // =================================================================
